@@ -2,10 +2,8 @@ const _ = require('lodash')
 const nconf = require('nconf')
 const isThere = require('is-there')
 const {
-  ANALYSE_SYNTAX_DEFAULT,
-  ANALYSE_ENTITIES_DEFAULT,
-  ANALYSE_SENTIMENT_DEFAULT,
-  ANALYSE_CUSTOM_TEXT_DEFAULT
+  DATA_GRANULARITY_DEFAULT,
+  API_ENDPOINT_DEFAULT
 } = require('../constants')
 
 module.exports = {
@@ -37,56 +35,35 @@ function getConfig (configPath, fileExist = isThere) {
  */
 function parseConfiguration (configObject = {}) {
   try {
-    const apiKey = configObject.get('parameters:#apiKey')
-    if (_.isUndefined(apiKey) || _.isEmpty(apiKey)) {
-      throw new Error('Parameter #apiKey is empty/not defined')
+    const apiURI = configObject.get('parameters:apiURI')
+    if (_.isUndefined(apiURI) || _.isEmpty(apiURI)) {
+      throw new Error('Parameter apiURI is empty/not defined')
     }
 
-    const analyseCustomText = !_.isUndefined(configObject.get('parameters:analyseCustomText'))
-      ? configObject.get('parameters:analyseCustomText')
-      : ANALYSE_CUSTOM_TEXT_DEFAULT
-
-    const customText = configObject.get('parameters:customText')
-
-    if (analyseCustomText && (_.isUndefined(customText) || _.isEmpty(customText))) {
-      throw new Error('Field customText is empty. Please fill this field or set analyseCustomText field to false!')
+    const apiToken = configObject.get('parameters:#apiToken')
+    if (_.isUndefined(apiToken) || _.isEmpty(apiToken)) {
+      throw new Error('Parameter #apiToken is empty/not defined')
     }
 
-    const inputFiles = configObject.get('storage:input:tables')
-    if (!analyseCustomText && (_.isUndefined(inputFiles) || !_.isArray(inputFiles) || _.isEmpty(inputFiles))) {
-      throw new Error('No KBC Bucket/Table selected. Please select one or set analyseCustomText field to true!')
-    }
+    const endpoint = !_.isUndefined(configObject.get('parameters:endpoint'))
+      ? configObject.get('parameters:endpoint')
+      : API_ENDPOINT_DEFAULT
 
-    if (!analyseCustomText && _.size(inputFiles) > 1) {
-      throw new Error('Only 1 file is allowed at a time! Please select only one file for NLP processing.')
-    }
+    const granularity = !_.isUndefined(configObject.get('parameters:granularity'))
+      ? configObject.get('parameters:granularity')
+      : DATA_GRANULARITY_DEFAULT
 
-    const inputFileName = !analyseCustomText && _.first(inputFiles).destination
-
-    const syntaxAnalysis = !_.isUndefined(configObject.get('parameters:syntaxAnalysis'))
-      ? configObject.get('parameters:syntaxAnalysis')
-      : ANALYSE_SYNTAX_DEFAULT
-
-    const entitiesAnalysis = !_.isUndefined(configObject.get('parameters:entitiesAnalysis'))
-      ? configObject.get('parameters:entitiesAnalysis')
-      : ANALYSE_ENTITIES_DEFAULT
-
-    const sentimentAnalysis = !_.isUndefined(configObject.get('parameters:sentimentAnalysis'))
-      ? configObject.get('parameters:sentimentAnalysis')
-      : ANALYSE_SENTIMENT_DEFAULT
-
-    const features = {
-      syntax: syntaxAnalysis,
-      entities: entitiesAnalysis,
-      sentiment: sentimentAnalysis
+    const measurementId = configObject.get('parameters:measurementId')
+    if (_.isUndefined(measurementId) || _.isEmpty(measurementId)) {
+      throw new Error('Field measurementId is empty/not defined')
     }
 
     return {
-      apiKey,
-      features,
-      customText,
-      inputFileName,
-      analyseCustomText
+      apiURI,
+      apiToken,
+      endpoint,
+      granularity,
+      measurementId
     }
   } catch (error) {
     throw new Error(`Problem in the input configuration - ${error.message}`)

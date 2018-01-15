@@ -39,17 +39,13 @@ async function getTextFromCsvFile (config, dataDir) {
  * into a single file (named after the key).
  *
  * @param {string} dataDir - output directory.
- * @param {Object} annotations - response from Google NLP service.
+ * @param {Object} data - response from Google NLP service.
  * @returns {undefined}
  */
-async function generateCsvFiles (dataDir, annotations) {
-  const keys = Object.keys(annotations)
-  for (const key of keys) {
-    const data = annotations[key]
-    if (_.isArray(data) || _.isObject(data)) {
-      const content = await json2csv({ data })
-      await writeCsvFile(path.join(dataDir, `${key}.csv`), content)
-    }
+async function generateCsvFile (dataDir, data) {
+  if (_.isArray(data) || _.isObject(data)) {
+    const content = await json2csv({ data })
+    await writeCsvFile(path.join(dataDir, `output.csv`), content)
   }
 }
 
