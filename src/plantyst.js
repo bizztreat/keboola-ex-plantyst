@@ -1,10 +1,10 @@
 const _ = require('lodash')
 const path = require('path')
-const rp = require('request-promise');
-const moment = require('moment');
+const rp = require('request-promise')
+const moment = require('moment')
 const constants = require('./constants')
 const { getConfig, parseConfiguration } = require('./helpers/configHelper')
-const { generateCsvFiles, generateManifests } = require('./helpers/csvHelper')
+const { generateCsvFile, generateManifests } = require('./helpers/csvHelper')
 
 /**
  * This function is the main program.
@@ -19,10 +19,15 @@ module.exports = async (dataDir) => {
     //const inputFilesDir = path.join(dataDir, constants.INPUT_FILES_DIR)
     const outputFilesDir = path.join(dataDir, constants.OUTPUT_FILES_DIR)
 
-    console.log('Start ...')
+    console.log("Version: 1.0.0")
 
     try {
         const config = parseConfiguration(getConfig(configFile))
+
+        const nowUTC = moment().utc()
+        const prevUTC = nowUTC.clone().subtract(config.changedInLast.amount, config.changedInLast.unitOfTime)
+
+        console.log(`Reading plantyst data since ${prevUTC.format()} ...`)
 
         var options = {
             method: 'POST',
@@ -37,8 +42,10 @@ module.exports = async (dataDir) => {
                 "Queries": [
                     {
                         "MeasurementId": config.measurementId,
-                        "From": "2017-11-01T00:00:00Z",
-                        "To": "2017-11-01T00:10:00Z",
+                        //"From": "2017-11-01T00:00:00Z",
+                        "From": prevUTC.format(),
+                        //"To": "2017-11-01T00:10:00Z",
+                        "To": nowUTC.format(),
                         "View": config.granularity, //"Base.MinuteSet",
                         "Precision": "2"
                     }]
@@ -46,21 +53,39 @@ module.exports = async (dataDir) => {
             json: true // Automatically stringifies the body to JSON
         };
 
+        var step
+        switch(config.granularity) {
+            case "Base.MinuteSet":
+                step = "m"
+                break;
+            case "Base.Hour":
+                step = "h"
+                throw new Error('This granularity is not supported yet!')
+                break;
+            case "Base.Day":
+                step = "d"
+                throw new Error('This granularity is not supported yet!')
+                break;
+            case "Base.Month":
+                step = "M"
+                throw new Error('This granularity is not supported yet!')
+                break;
+        }
+
         //console.log(options)
+        //console.log(options.body)
         var values
 
         await rp(options)
             .then(function (response) { // POST succeeded...
                 var result = response.results[0]
-                //console.log(result);
-
                 var from = moment.utc(result.first);
-                //console.log(from);
+                //console.log(result);
 
                 values = result.data.map(function (p, i) {
                     return ({
-                        From: from.clone().add(i, "m"),
-                        To: from.clone().add(i + 1, "m"),
+                        From: from.clone().add(i, step),
+                        To: from.clone().add(i + 1, step),
                         Value: p,
                     });
                 });
@@ -70,13 +95,15 @@ module.exports = async (dataDir) => {
                 process.exit(constants.EXIT_STATUS_FAILURE)
             });
 
+        // Print result to console
         values.forEach(function (v) {
             console.log(JSON.stringify(v));
         });
+        //
 
         await generateCsvFile(outputFilesDir, values)
 
-        console.log('Data has been downloaded!')
+        console.log('Data has been read successfully!')
         process.exit(constants.EXIT_STATUS_SUCCESS)
     } catch (error) {
         console.error(error.message ? error.message : error)
