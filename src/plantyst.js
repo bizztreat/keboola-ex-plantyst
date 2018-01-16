@@ -19,8 +19,7 @@ module.exports = async (dataDir) => {
     //const inputFilesDir = path.join(dataDir, constants.INPUT_FILES_DIR)
     const outputFilesDir = path.join(dataDir, constants.OUTPUT_FILES_DIR)
 
-    console.log("Version: 1.0.1")
-    console.log("+" + configFile)
+    console.log("Version: 1.0.2")
 
     try {
         const config = parseConfiguration(getConfig(configFile))
@@ -28,6 +27,9 @@ module.exports = async (dataDir) => {
         const nowUTC = moment().utc()
         const prevUTC = nowUTC.clone().subtract(config.changedInLast.amount, config.changedInLast.unitOfTime)
 
+        console.log(`URI: ${config.apiURI + config.endpoint}`)
+        console.log(`Measurement ID: ${config.measurementId}`)
+        console.log(`Granularity: ${config.granularity}`)
         console.log(`Reading plantyst data since ${prevUTC.format()} ...`)
 
         var options = {
@@ -96,11 +98,11 @@ module.exports = async (dataDir) => {
                 process.exit(constants.EXIT_STATUS_FAILURE)
             });
 
-        // Print result to console
+        /* Print result to console
         values.forEach(function (v) {
             console.log(JSON.stringify(v));
         });
-        //
+        */
 
         await generateCsvFile(outputFilesDir, values)
 
