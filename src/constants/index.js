@@ -6,8 +6,4 @@ module.exports = {
     EXIT_STATUS_FAILURE: 1,
     DATA_GRANULARITY_DEFAULT: 'Base.MinuteSet',
     API_ENDPOINT_DEFAULT: 'MeasurementTimeSeriesAggregationsQuery'
-    //ANALYSE_SYNTAX_DEFAULT: true,
-    //ANALYSE_ENTITIES_DEFAULT: true,
-    //ANALYSE_SENTIMENT_DEFAULT: true,
-    //ANALYSE_CUSTOM_TEXT_DEFAULT: false
   }
