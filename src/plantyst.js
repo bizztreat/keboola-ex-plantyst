@@ -43,10 +43,10 @@ module.exports = async (dataDir) => {
                     {
                         "MeasurementId": config.measurementId,
                         //"From": "2017-11-01T00:00:00Z",
-                        "From": prevUTC.format(),
                         //"To": "2017-11-01T00:10:00Z",
+                        "From": prevUTC.format(),
                         "To": nowUTC.format(),
-                        "View": config.granularity, //"Base.MinuteSet",
+                        "View": config.granularity,
                         "Precision": "2"
                     }]
             },
