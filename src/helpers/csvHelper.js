@@ -6,8 +6,7 @@ const jsonfile = require('jsonfile')
 const json2csv = require('json2csv')
 
 module.exports = {
-  generateCsvFiles,
-  generateManifests,
+  generateCsvFile,
   getTextFromCsvFile
 }
 
@@ -34,34 +33,16 @@ async function getTextFromCsvFile (config, dataDir) {
 }
 
 /**
- * This function reads the big object returned by Google NLP response,
- * gets all relevant keys (which contains array or object) and store content
- * into a single file (named after the key).
+ * This function reads the response data from Plantys API,
  *
  * @param {string} dataDir - output directory.
- * @param {Object} data - response from Google NLP service.
+ * @param {Object} data - response from Plantys API service.
  * @returns {undefined}
  */
 async function generateCsvFile (dataDir, data) {
   if (_.isArray(data) || _.isObject(data)) {
     const content = await json2csv({ data })
     await writeCsvFile(path.join(dataDir, `output.csv`), content)
-  }
-}
-
-/**
- * This function reads the contents of the output directory, filter out files which are not .csv
- * and iterates over each file and generate a simple manifest which triggers a full-load into KBC.
- *
- * @param {string} dataDir - output directory.
- * @returns {undefined}
- */
-async function generateManifests (dataDir) {
-  const files = await readDirectory(dataDir)
-  const csvFiles = files.filter(file => path.extname(file) === '.csv')
-
-  for (const file of csvFiles) {
-    await createManifestFile(path.join(dataDir, `${file}.manifest`), { incremental: false })
   }
 }
 
@@ -118,42 +99,5 @@ function convertToString (arrayOfRows) {
         }
       }
     )
-  })
-}
-
-/**
- * This function reads the directory and store all the files into an array.
- *
- * @param {string} dataDir - directory with the files which are going to be read.
- * @returns {Promise.<[]>}
- */
-function readDirectory (dataDir) {
-  return new Promise((resolve, reject) => {
-    fs.readdir(dataDir, (error, files) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve(files)
-      }
-    })
-  })
-}
-
-/**
- * This function generates a manifest (JSON) file with data passed in input.
- *
- * @param {string} fileName - output filename.
- * @param {Object} data - output to be written.
- * @returns {Promise}
- */
-function createManifestFile (fileName, data) {
-  return new Promise((resolve, reject) => {
-    jsonfile.writeFile(fileName, data, {}, (error) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve()
-      }
-    })
   })
 }

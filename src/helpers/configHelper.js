@@ -18,7 +18,7 @@ module.exports = {
  * @param {function} fileExist - a simple function that checks whether a file exists .
  * @returns {Object}
  */
-function getConfig (configPath, fileExist = isThere) {
+function getConfig(configPath, fileExist = isThere) {
   if (fileExist(configPath)) {
     return nconf.env().file(configPath)
   } else {
@@ -33,7 +33,7 @@ function getConfig (configPath, fileExist = isThere) {
  * @throws {error}
  * @returns {Object}
  */
-function parseConfiguration (configObject = {}) {
+function parseConfiguration(configObject = {}) {
   try {
     const apiURI = configObject.get('parameters:apiURI')
     if (_.isUndefined(apiURI) || _.isEmpty(apiURI)) {
@@ -58,11 +58,33 @@ function parseConfiguration (configObject = {}) {
       throw new Error('Field measurementId is empty/not defined')
     }
 
+    const changedIn = configObject.get('parameters:changedInLast')
+    if (_.isUndefined(changedIn) || _.isEmpty(changedIn)) {
+      throw new Error('Field changedInLast is empty/not defined')
+    }
+
+    const amount = changedIn.slice(0,-1)
+    if(!_.isNumber(parseInt(amount))) {
+      throw new Error('Field changedInLast has invalid format. Use format [NNu] N = number, u = unit. Sample: 15d')
+    }
+
+    const unitOfTime = changedIn.slice(-1)
+    const allowedUnits = ["s", "m", "h", "d"]
+    if(allowedUnits.indexOf(unitOfTime) == -1) {
+      throw new Error('Field changedInLast contains unknown unit of time. Use one of these [d, h, m, s]')
+    }
+
+    const changedInLast = {
+      amount: amount,
+      unitOfTime: unitOfTime
+    }
+
     return {
       apiURI,
       apiToken,
       endpoint,
       granularity,
+      changedInLast,
       measurementId
     }
   } catch (error) {
