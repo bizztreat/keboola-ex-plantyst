@@ -19,8 +19,8 @@ module.exports = async (dataDir) => {
     //const inputFilesDir = path.join(dataDir, constants.INPUT_FILES_DIR)
     const outputFilesDir = path.join(dataDir, constants.OUTPUT_FILES_DIR)
 
-    console.log("Version: 1.0.0")
-    console.log(configFile)
+    console.log("Version: 1.0.1")
+    console.log("+" + configFile)
 
     try {
         const config = parseConfiguration(getConfig(configFile))
