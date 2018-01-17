@@ -6,7 +6,7 @@ It does not remove your data from or store it elsewhere than within your KBC acc
 ## Contact address
 
 BizzTreat, s.r.o
-Bubenská 1477/1
+Řehořova 968/42
 Prague
 
 email: jiri.tobolka@bizztreat.com
