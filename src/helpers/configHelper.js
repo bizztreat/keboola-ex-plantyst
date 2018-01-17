@@ -69,9 +69,9 @@ function parseConfiguration(configObject = {}) {
     }
 
     const unitOfTime = changedIn.slice(-1)
-    const allowedUnits = ["s", "m", "h", "d"]
+    const allowedUnits = ["m", "h", "d", "M"]
     if(allowedUnits.indexOf(unitOfTime) == -1) {
-      throw new Error('Field changedInLast contains unknown unit of time. Use one of these [d, h, m, s]')
+      throw new Error('Field changedInLast contains unknown unit of time. Use one of these [m, h, d, M]')
     }
 
     const changedInLast = {

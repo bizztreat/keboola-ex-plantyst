@@ -45,8 +45,6 @@ module.exports = async (dataDir) => {
                 "Queries": [
                     {
                         "MeasurementId": config.measurementId,
-                        //"From": "2017-11-01T00:00:00Z",
-                        //"To": "2017-11-01T00:10:00Z",
                         "From": prevUTC.format(),
                         "To": nowUTC.format(),
                         "View": config.granularity,
@@ -57,21 +55,18 @@ module.exports = async (dataDir) => {
         };
 
         var step
-        switch(config.granularity) {
+        switch (config.granularity) {
             case "Base.MinuteSet":
                 step = "m"
                 break;
             case "Base.Hour":
                 step = "h"
-                throw new Error('This granularity is not supported yet!')
                 break;
             case "Base.Day":
                 step = "d"
-                throw new Error('This granularity is not supported yet!')
                 break;
             case "Base.Month":
                 step = "M"
-                throw new Error('This granularity is not supported yet!')
                 break;
         }
 
@@ -85,13 +80,20 @@ module.exports = async (dataDir) => {
                 var from = moment.utc(result.first);
                 //console.log(result);
 
+                var valIndex = result.outputFormat.indexOf('ValueSum') + 1
+                var ii = 0
                 values = result.data.map(function (p, i) {
-                    return ({
-                        From: from.clone().add(i, step),
-                        To: from.clone().add(i + 1, step),
-                        Value: p,
-                    });
+                    if ((i + 1) % valIndex == 0) {
+                        return ({
+                            From: from.clone().add(ii++, step),
+                            To: from.clone().add(ii, step),
+                            Value: p,
+                        });
+                    }
                 });
+                
+                values = _.remove(values, undefined)
+
             })
             .catch(function (error) {
                 console.error(error.message ? error.message : error)
