@@ -19,7 +19,7 @@ module.exports = async (dataDir) => {
     //const inputFilesDir = path.join(dataDir, constants.INPUT_FILES_DIR)
     const outputFilesDir = path.join(dataDir, constants.OUTPUT_FILES_DIR)
 
-    console.log("Version: 2.0.2")
+    console.log("Version: 2.0.3")
 
     try {
         const config = parseConfiguration(getConfig(configFile))
@@ -152,9 +152,9 @@ module.exports = async (dataDir) => {
                                 to: d.to,
                                 color: d.color,
                                 setpoint: d.setpoint,
-                                lastModified: d.lastModified,
                                 operations: d.operations,
                                 downtimeCode: d.downtimeCode,
+                                lastModified: d.lastModified,
                             })
 
                             if (!_.isEmpty(d.comments)) {
