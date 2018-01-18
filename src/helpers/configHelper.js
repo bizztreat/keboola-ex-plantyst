@@ -74,8 +74,10 @@ function parseConfiguration(configObject = {}) {
       throw new Error('Field changedInLast contains unknown unit of time. Use one of these [m, h, d, M]')
     }
 
+    console.log("-"+configObject.get('parameters:metadocuments')+"-")
+
     const metadocuments = !_.isUndefined(configObject.get('parameters:metadocuments'))
-    ? configObject.get('parameters:metadocuments')
+    ? true
     : false
 
     const changedInLast = {
