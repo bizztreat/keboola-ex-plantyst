@@ -5,5 +5,6 @@ module.exports = {
     EXIT_STATUS_SUCCESS: 0,
     EXIT_STATUS_FAILURE: 1,
     DATA_GRANULARITY_DEFAULT: 'Base.MinuteSet',
-    API_ENDPOINT_DEFAULT: 'MeasurementTimeSeriesAggregationsQuery'
+    API_ENDPOINT_MEASUREMENTS: 'MeasurementTimeSeriesAggregationsQuery',
+    API_ENDPOINT_METADOCUMENTS: "MetadocumentsQuery"
   }

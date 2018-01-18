@@ -36,13 +36,16 @@ async function getTextFromCsvFile (config, dataDir) {
  * This function reads the response data from Plantys API,
  *
  * @param {string} dataDir - output directory.
+ * @param {string} fileName - output file name.
  * @param {Object} data - response from Plantys API service.
  * @returns {undefined}
  */
-async function generateCsvFile (dataDir, data) {
-  if (_.isArray(data) || _.isObject(data)) {
+async function generateCsvFile (dataDir, fileName, data) {
+  if (!_.isEmpty(data) && (_.isArray(data) || _.isObject(data))) {
     const content = await json2csv({ data })
-    await writeCsvFile(path.join(dataDir, `output.csv`), content)
+    await writeCsvFile(path.join(dataDir, fileName), content)
+  } else {
+    console.warn(fileName + " - Empty data.")
   }
 }
 

@@ -45,9 +45,9 @@ function parseConfiguration(configObject = {}) {
       throw new Error('Parameter #apiToken is empty/not defined')
     }
 
-    const endpoint = !_.isUndefined(configObject.get('parameters:endpoint'))
-      ? configObject.get('parameters:endpoint')
-      : API_ENDPOINT_DEFAULT
+    // const endpoint = !_.isUndefined(configObject.get('parameters:endpoint'))
+    //   ? configObject.get('parameters:endpoint')
+    //   : API_ENDPOINT_MEASUREMENTS
 
     const granularity = !_.isUndefined(configObject.get('parameters:granularity'))
       ? configObject.get('parameters:granularity')
@@ -74,6 +74,10 @@ function parseConfiguration(configObject = {}) {
       throw new Error('Field changedInLast contains unknown unit of time. Use one of these [m, h, d, M]')
     }
 
+    const metadocuments = !_.isUndefined(configObject.get('parameters:metadocuments'))
+    ? configObject.get('parameters:metadocuments')
+    : false
+
     const changedInLast = {
       amount: amount,
       unitOfTime: unitOfTime
@@ -82,10 +86,11 @@ function parseConfiguration(configObject = {}) {
     return {
       apiURI,
       apiToken,
-      endpoint,
+      // endpoint,
       granularity,
       changedInLast,
-      measurementId
+      measurementId,
+      metadocuments
     }
   } catch (error) {
     throw new Error(`Problem in the input configuration - ${error.message}`)
