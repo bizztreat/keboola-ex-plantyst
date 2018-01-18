@@ -9,6 +9,7 @@ https://plantystportal.docs.apiary.io/
 ### Allowed data objects to extract
 
 - Measurement Data
+- Metadocuments and Comments
 
 All the objects are mapped to output CSV file. See schema below:
 
@@ -20,33 +21,56 @@ All the objects are mapped to output CSV file. See schema below:
 - To: Timestamp
 - Value: Sum of measurements within the from - to range
 
+#### Metadocuments
+
+['Guid', 'Type', 'Title', 'Description', 'CustomId', 'CreatorId', 'MeasurementId', 'From', 'To', 'Color', 'LastModified', 'Operations', 'DowntimeCode']
+
+- Guid:
+- Type: 
+- Title:
+- Description:
+- CustomId:
+- CreatorId:
+- MeasurementId:
+- From:
+- To:
+- Color:
+- LastModified:
+- Operations:
+- DowntimeCode:
+
+#### Comments
+
+['DocumentGuid', 'Id', 'Text', 'ModificationTime']
+
+- DocumentGuid: Parent guid of the metadocument
+- Id: Comment d within the metadocument
+- Text: Content of the message
+- ModificationTime: Timestamp
+
 ## Configuration
-
-### Output mapping
-
-Use path `/data/out/tables/output.csv` as File in output mapping.
-For destination bucket use according your needs.
 
 ### Parameters
 
 <pre>
 {
   "apiURI": <web-service-uri>
-  "endpoint": <service-endpoint>
+  "#apiToken": <your-secret-tocken>
   "measurementId": <your-id>
   "granularity": One of these ["Base.MinuteSet", "Base.Hour", "Base.Day", "Base.Month"]
   "changedInLast": The time period for which the data will be extracted. (E.g. '30m', '24h', '7d', ...)
-  "#apiToken": <your-secret-tocken>,
+  "metadocuments": [true/false] If you want to also extract metadocuments for measured data
+
 }
 </pre>
 
 
 - `apiURI` is url of the service
-- `endpoint` is an api endpoint
 - `#apiToken` is your secret token
 - `measurementId` is your unique ID
 - `granularity` is measured time period like minute, hour, day, ...
 - `changedInLast` is time range for data extract
+- `metaducuments` select if you want to read metadocuments
 
 
 ## Contact
