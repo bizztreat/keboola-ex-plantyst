@@ -77,7 +77,7 @@ function parseConfiguration(configObject = {}) {
     console.log("-"+configObject.get('parameters:metadocuments')+"-")
 
     const metadocuments = !_.isUndefined(configObject.get('parameters:metadocuments'))
-    ? true
+    ? configObject.get('parameters:metadocuments')
     : false
 
     const changedInLast = {
