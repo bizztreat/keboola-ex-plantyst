@@ -7,6 +7,7 @@ const json2csv = require('json2csv')
 
 module.exports = {
   generateCsvFile,
+  generateManifests,
   getTextFromCsvFile
 }
 
@@ -46,6 +47,22 @@ async function generateCsvFile (dataDir, fileName, data) {
     await writeCsvFile(path.join(dataDir, fileName), content)
   } else {
     console.warn(fileName + " - Empty data.")
+  }
+}
+
+/**
+ * This function reads the contents of the output directory, filter out files which are not .csv
+ * and iterates over each file and generate a simple manifest which triggers a full-load into KBC.
+ *
+ * @param {string} dataDir - output directory.
+ * @returns {undefined}
+ */
+async function generateManifests (dataDir) {
+  const files = await readDirectory(dataDir)
+  const csvFiles = files.filter(file => path.extname(file) === '.csv')
+
+  for (const file of csvFiles) {
+    await createManifestFile(path.join(dataDir, `${file}.manifest`), { incremental: true })
   }
 }
 
@@ -102,5 +119,42 @@ function convertToString (arrayOfRows) {
         }
       }
     )
+  })
+}
+
+/**
+ * This function reads the directory and store all the files into an array.
+ *
+ * @param {string} dataDir - directory with the files which are going to be read.
+ * @returns {Promise.<[]>}
+ */
+function readDirectory (dataDir) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(dataDir, (error, files) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(files)
+      }
+    })
+  })
+}
+
+/**
+ * This function generates a manifest (JSON) file with data passed in input.
+ *
+ * @param {string} fileName - output filename.
+ * @param {Object} data - output to be written.
+ * @returns {Promise}
+ */
+function createManifestFile (fileName, data) {
+  return new Promise((resolve, reject) => {
+    jsonfile.writeFile(fileName, data, {}, (error) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve()
+      }
+    })
   })
 }
