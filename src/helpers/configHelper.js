@@ -3,7 +3,8 @@ const nconf = require('nconf')
 const isThere = require('is-there')
 const {
   DATA_GRANULARITY_DEFAULT,
-  API_ENDPOINT_DEFAULT
+  API_ENDPOINT_MEASUREMENTS,
+  CHANGED_IN_LAST_DEFAULT
 } = require('../constants')
 
 module.exports = {
@@ -35,33 +36,41 @@ function getConfig(configPath, fileExist = isThere) {
  */
 function parseConfiguration(configObject = {}) {
   try {
-    const apiURI = configObject.get('parameters:apiURI')
-    if (_.isUndefined(apiURI) || _.isEmpty(apiURI)) {
-      throw new Error('Parameter apiURI is empty/not defined')
-    }
+    // const apiURI = configObject.get('parameters:apiURI')
+    // if (_.isUndefined(apiURI) || _.isEmpty(apiURI)) {
+    //   throw new Error('Parameter apiURI is empty/not defined')
+    // }
 
     const apiToken = configObject.get('parameters:#apiToken')
     if (_.isUndefined(apiToken) || _.isEmpty(apiToken)) {
       throw new Error('Parameter #apiToken is empty/not defined')
     }
 
-    // const endpoint = !_.isUndefined(configObject.get('parameters:endpoint'))
-    //   ? configObject.get('parameters:endpoint')
-    //   : API_ENDPOINT_MEASUREMENTS
+    const endpoint = configObject.get('parameters:endpoint')
+    if (_.isUndefined(endpoint) || _.isEmpty(endpoint)) {
+      throw new Error('Parameter endpoint is empty/not defined')
+    }
 
     const granularity = !_.isUndefined(configObject.get('parameters:granularity'))
       ? configObject.get('parameters:granularity')
       : DATA_GRANULARITY_DEFAULT
 
-    const measurementId = configObject.get('parameters:measurementId')
-    if (_.isUndefined(measurementId) || _.isEmpty(measurementId)) {
-      throw new Error('Field measurementId is empty/not defined')
-    }
+    // const measurementId = configObject.get('parameters:measurementId')
+    // if (_.isUndefined(measurementId) || _.isEmpty(measurementId)) {
+    //   throw new Error('Field measurementId is empty/not defined')
+    // }
+    const measurementId = !_.isUndefined(configObject.get('parameters:measurementId'))
+    ? configObject.get('parameters:measurementId')
+    : null
 
-    const changedIn = configObject.get('parameters:changedInLast')
-    if (_.isUndefined(changedIn) || _.isEmpty(changedIn)) {
-      throw new Error('Field changedInLast is empty/not defined')
-    }
+    // const changedIn = configObject.get('parameters:changedInLast')
+    // if (_.isUndefined(changedIn) || _.isEmpty(changedIn)) {
+    //   throw new Error('Field changedInLast is empty/not defined')
+    // }
+    const changedIn = !_.isUndefined(configObject.get('parameters:changedInLast'))
+    ? configObject.get('parameters:changedInLast')
+    : CHANGED_IN_LAST_DEFAULT
+
 
     const amount = changedIn.slice(0,-1)
     if(!_.isNumber(parseInt(amount))) {
@@ -86,9 +95,9 @@ function parseConfiguration(configObject = {}) {
     }
 
     return {
-      apiURI,
+      // apiURI,
       apiToken,
-      // endpoint,
+      endpoint,
       granularity,
       changedInLast,
       measurementId,

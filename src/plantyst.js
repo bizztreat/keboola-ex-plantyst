@@ -5,6 +5,7 @@ const moment = require('moment')
 const constants = require('./constants')
 const { getConfig, parseConfiguration } = require('./helpers/configHelper')
 const { generateCsvFile, generateManifests } = require('./helpers/csvHelper')
+const { getMeasurements, getMeasurementTimeSeries, getMetadocuments } = require('./helpers/callerHelper')
 
 /**
  * This function is the main program.
@@ -19,175 +20,146 @@ module.exports = async (dataDir) => {
     //const inputFilesDir = path.join(dataDir, constants.INPUT_FILES_DIR)
     const outputFilesDir = path.join(dataDir, constants.OUTPUT_FILES_DIR)
 
-    console.log("Version: 2.0.3")
-
     try {
         const config = parseConfiguration(getConfig(configFile))
+        var options
+        var values = []
 
-        const nowUTC = moment().utc()
-        const prevUTC = nowUTC.clone().subtract(config.changedInLast.amount, config.changedInLast.unitOfTime)
+        console.log("Version: 2.1.0")
+        console.log(`URI: ${constants.API_URI}`)
+        console.log(`Endpoint: ${config.endpoint}`)
 
-        console.log(`URI: ${config.apiURI + constants.API_ENDPOINT_MEASUREMENTS}`)
-        console.log(`Measurement ID: ${config.measurementId}`)
-        console.log(`Granularity: ${config.granularity}`)
-        console.log(`Metadocuments: ${config.metadocuments}`)
-        console.log(`Reading plantyst data since ${prevUTC.format()} ...`)
+        switch (config.endpoint) {
+            case 'Measurements':
+                options = {
+                    method: 'GET',
+                    uri: constants.API_URI + constants.API_ENDPOINT_MEASUREMENTS,
+                    headers: {
+                        'User-Agent': 'Request-Promise',
+                        'Content-type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + config.apiToken
+                    },
+                    json: true // Automatically stringifies the body to JSON
+                }
 
-        var options = {
-            method: 'POST',
-            uri: config.apiURI + constants.API_ENDPOINT_MEASUREMENTS,
-            headers: {
-                'User-Agent': 'Request-Promise',
-                'Content-type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + config.apiToken
-            },
-            body: {
-                "Queries": [
-                    {
-                        "MeasurementId": config.measurementId,
+                values = await getMeasurements(options)
+
+                // values.forEach(function (v) {
+                //     console.log(JSON.stringify(v));
+                // });
+
+                await generateCsvFile(outputFilesDir, `measurements.csv`, values)
+                console.log('Measurements has been read successfully!')
+                break
+            case 'MeasurementTimeSeriesAggregationsQuery':
+                const nowUTC = moment().utc()
+                const prevUTC = nowUTC.clone().subtract(config.changedInLast.amount, config.changedInLast.unitOfTime)
+
+                console.log(`Measurement ID: ${config.measurementId}`)
+                console.log(`Granularity: ${config.granularity}`)
+                console.log(`Metadocuments: ${config.metadocuments}`)
+                console.log(`Reading plantyst data since ${prevUTC.format()} ...`)
+
+                var ids = config.measurementId.split(',');
+
+                var queries = ids.map(function (v) {
+                    return ({
+                        "MeasurementId": v.trim(),
                         "From": prevUTC.format(),
                         "To": nowUTC.format(),
                         "View": config.granularity,
                         "Precision": "2"
-                    }]
-            },
-            json: true // Automatically stringifies the body to JSON
-        };
+                    });
+                })
 
-        var step
-        switch (config.granularity) {
-            case "Base.MinuteSet":
-                step = "m"
-                break;
-            case "Base.Hour":
-                step = "h"
-                break;
-            case "Base.Day":
-                step = "d"
-                break;
-            case "Base.Month":
-                step = "M"
-                break;
-        }
+                // console.log(queries)
 
-        var values = []
+                options = {
+                    method: 'POST',
+                    uri: constants.API_URI + constants.API_ENDPOINT_MEASUREMENT_TIME_SERIES,
+                    headers: {
+                        'User-Agent': 'Request-Promise',
+                        'Content-type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + config.apiToken
+                    },
+                    body: {
+                        "Queries": queries //[
+                            // {
+                            //     // "MeasurementId": config.measurementId,
+                            //     "MeasurementId": '1269',
+                            //     "From": prevUTC.format(),
+                            //     "To": nowUTC.format(),
+                            //     "View": config.granularity,
+                            //     "Precision": "2"
+                            // }]
+                    },
+                    json: true // Automatically stringifies the body to JSON
+                }
 
-        await rp(options)
-            .then(function (response) { // POST succeeded...
-                var result = response.results[0]
-                var from = moment.utc(result.first);
-                //console.log(result);
+                // console.log(options.body.Queries)
 
-                var valIndex = result.outputFormat.indexOf('ValueSum') + 1
-                var ii = 0
-                values = result.data.map(function (p, i) {
-                    if ((i + 1) % valIndex == 0) {
+                values = await getMeasurementTimeSeries(options, config.granularity)
+
+                // values.forEach(function (v) {
+                //     console.log(JSON.stringify(v));
+                // });
+
+                await generateCsvFile(outputFilesDir, `time-series.csv`, values)
+                console.log('Time Series has been read successfully!')
+
+                // METADOCUMENTS
+                if (config.metadocuments) {
+                    queries = ids.map(function (v) {
                         return ({
-                            From: from.clone().add(ii++, step),
-                            To: from.clone().add(ii, step),
-                            Value: p,
-                        });
-                    }
-                });
-
-                values = _.remove(values, undefined)
-
-            })
-            .catch(function (error) {
-                console.error(error.message ? error.message : error)
-                process.exit(constants.EXIT_STATUS_FAILURE)
-            });
-
-        // values.forEach(function (v) {
-        //     console.log(JSON.stringify(v));
-        // });
-
-
-        await generateCsvFile(outputFilesDir, `measurements.csv`, values)
-        console.log('Data has been read successfully!')
-
-        // METADOCUMENTS
-        if (config.metadocuments) {
-            options = {
-                method: 'POST',
-                uri: config.apiURI + constants.API_ENDPOINT_METADOCUMENTS,
-                headers: {
-                    'User-Agent': 'Request-Promise',
-                    'Content-type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer ' + config.apiToken
-                },
-                body: {
-                    "Queries": [
-                        {
-                            "MeasurementId": config.measurementId,
+                            "MeasurementId": v.trim(),
                             "From": prevUTC.format(),
                             "To": nowUTC.format()
-                        }]
-                },
-                json: true // Automatically stringifies the body to JSON
-            };
-
-            values = []
-            var comments = []
-
-            await rp(options)
-                .then(function (response) { // POST succeeded...
-                    var data = response.resourceList
-                    var upToDate = moment.utc(response.dateTime);
-                    //console.log(response)
-
-                    if (!_.isEmpty(data)) {
-                        data.forEach(function (d) {
-                            values.push({
-                                guid: d.guid,
-                                type: d.type,
-                                title: d.title,
-                                description: d.description,
-                                customId: d.customId,
-                                creatorId: d.creatorId,
-                                measurementId: d.measurementId,
-                                from: d.from,
-                                to: d.to,
-                                color: d.color,
-                                setpoint: d.setpoint,
-                                operations: d.operations,
-                                downtimeCode: d.downtimeCode,
-                                lastModified: d.lastModified,
-                            })
-
-                            if (!_.isEmpty(d.comments)) {
-                                d.comments.forEach(function (c) {
-                                    comments.push({
-                                        documentGuid: d.guid,
-                                        id: c.id,
-                                        text: c.text,
-                                        modificationTime: c.modificationTime,
-                                    });
-                                });
-                            }
                         });
-                    }
-                })
-                .catch(function (error) {
-                    console.error(error.message ? error.message : error)
-                    process.exit(constants.EXIT_STATUS_FAILURE)
-                });
-            
-            // values.forEach(function (v) {
-            //     console.log(JSON.stringify(v));
-            // });
-    
-            // comments.forEach(function (v) {
-            //     console.log(JSON.stringify(v));
-            // });
+                    })
 
-            await generateCsvFile(outputFilesDir, `metadocuments.csv`, values)
-            await generateCsvFile(outputFilesDir, `metadocuments-comments.csv`, comments)
-            console.log('Metadocuments has been read successfully!')
+                    options = {
+                        method: 'POST',
+                        uri: constants.API_URI + constants.API_ENDPOINT_METADOCUMENTS,
+                        headers: {
+                            'User-Agent': 'Request-Promise',
+                            'Content-type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': 'Bearer ' + config.apiToken
+                        },
+                        body: {
+                            "Queries": queries//[
+                                // {
+                                //     "MeasurementId": config.measurementId,
+                                //     "From": prevUTC.format(),
+                                //     "To": nowUTC.format()
+                                // }]
+                        },
+                        json: true // Automatically stringifies the body to JSON
+                    };
+
+                    var result = await getMetadocuments(options)
+
+                    // result.values.forEach(function (v) {
+                    //     console.log(JSON.stringify(v));
+                    // });
+
+                    // result.comments.forEach(function (v) {
+                    //     console.log(JSON.stringify(v));
+                    // });
+
+                    await generateCsvFile(outputFilesDir, `metadocuments.csv`, result.values)
+                    await generateCsvFile(outputFilesDir, `metadocuments-comments.csv`, result.comments)
+                    console.log('Metadocuments has been read successfully!')
+                }
+
+                break
+            default:
+                throw new Error('Unknown API endpoint. Use one of these [Measurements, MeasurementTimeSeriesAggregationsQuery]')
         }
 
+        await generateManifests(outputFilesDir)
         process.exit(constants.EXIT_STATUS_SUCCESS)
     } catch (error) {
         console.error(error.message ? error.message : error)
