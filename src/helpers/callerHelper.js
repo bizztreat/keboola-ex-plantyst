@@ -86,10 +86,10 @@ async function getMeasurementTimeSeries(options, granularity) {
                 var data = r.data.map(function (p, i) {
                     if ((i + 1) % valIndex == 0) {
                         return ({
-                            MeasurementId: r.query.measurementId,
-                            From: from.clone().add(ii++, step),
-                            To: from.clone().add(ii, step),
-                            Value: p,
+                            measurementId: r.query.measurementId,
+                            from: from.clone().add(ii++, step),
+                            to: from.clone().add(ii, step),
+                            value: p,
                         });
                     }
                 });
@@ -99,9 +99,9 @@ async function getMeasurementTimeSeries(options, granularity) {
                 values = values.concat(data)
             });
 
-            values.forEach(function (v) {
-                console.log(JSON.stringify(v));
-            });
+            // values.forEach(function (v) {
+            //     console.log(JSON.stringify(v));
+            // });
 
             // var valIndex = result.outputFormat.indexOf('ValueSum') + 1
             // var ii = 0

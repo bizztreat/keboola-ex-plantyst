@@ -20,7 +20,7 @@ module.exports = {
  * @throws {error}
  * @returns {string}
  */
-async function getTextFromCsvFile (config, dataDir) {
+async function getTextFromCsvFile(config, dataDir) {
   try {
     const { inputFileName } = config
     const fileName = path.join(dataDir, inputFileName)
@@ -41,7 +41,7 @@ async function getTextFromCsvFile (config, dataDir) {
  * @param {Object} data - response from Plantys API service.
  * @returns {undefined}
  */
-async function generateCsvFile (dataDir, fileName, data) {
+async function generateCsvFile(dataDir, fileName, data) {
   if (!_.isEmpty(data) && (_.isArray(data) || _.isObject(data))) {
     const content = await json2csv({ data })
     await writeCsvFile(path.join(dataDir, fileName), content)
@@ -57,12 +57,32 @@ async function generateCsvFile (dataDir, fileName, data) {
  * @param {string} dataDir - output directory.
  * @returns {undefined}
  */
-async function generateManifests (dataDir) {
+async function generateManifests(dataDir) {
   const files = await readDirectory(dataDir)
   const csvFiles = files.filter(file => path.extname(file) === '.csv')
 
   for (const file of csvFiles) {
-    await createManifestFile(path.join(dataDir, `${file}.manifest`), { incremental: true })
+    var manifest
+
+    switch (file) {
+      case 'measurements.csv':
+        manifest = { primary_key: ["measurementId"], incremental: true }
+        break
+      case 'time-series.csv':
+        manifest = { primary_key: ["measurementId", "from", "to"], incremental: true }
+        break
+      case 'metadocuments.csv':
+        manifest = { primary_key: ["guid"], incremental: true }
+        break
+      case 'metadocuments-comments.csv':
+        manifest = { primary_key: ["documentGuid", "id"], incremental: true }
+        break
+      default:
+        manifest = { incremental: true }
+        break
+    }
+
+    await createManifestFile(path.join(dataDir, `${file}.manifest`), manifest)
   }
 }
 
@@ -73,7 +93,7 @@ async function generateManifests (dataDir) {
  * @param {string} fileName - path the fileName which is going to be processed.
  * @returns {Promise.<[]>}
  */
-function parseCsvFile (fileName) {
+function parseCsvFile(fileName) {
   return new Promise((resolve, reject) => {
     const contentArray = []
     const readStream = fs.createReadStream(fileName)
@@ -91,7 +111,7 @@ function parseCsvFile (fileName) {
  * @param {Array|Object} data - content which is going to be written into a file.
  * @returns {Promise.<[]>}
  */
-function writeCsvFile (file, data) {
+function writeCsvFile(file, data) {
   return new Promise((resolve, reject) => {
     fs.writeFile(file, data, (error) => {
       if (error) {
@@ -109,15 +129,15 @@ function writeCsvFile (file, data) {
  * @param {Array} arrayOfRows - content of the input file split into rows stored in array.
  * @returns {Promise.<[]>}
  */
-function convertToString (arrayOfRows) {
+function convertToString(arrayOfRows) {
   return new Promise((resolve, reject) => {
     csv.writeToString(arrayOfRows, { headers: true }, (error, data) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(data)
-        }
+      if (error) {
+        reject(error)
+      } else {
+        resolve(data)
       }
+    }
     )
   })
 }
@@ -128,7 +148,7 @@ function convertToString (arrayOfRows) {
  * @param {string} dataDir - directory with the files which are going to be read.
  * @returns {Promise.<[]>}
  */
-function readDirectory (dataDir) {
+function readDirectory(dataDir) {
   return new Promise((resolve, reject) => {
     fs.readdir(dataDir, (error, files) => {
       if (error) {
@@ -147,7 +167,7 @@ function readDirectory (dataDir) {
  * @param {Object} data - output to be written.
  * @returns {Promise}
  */
-function createManifestFile (fileName, data) {
+function createManifestFile(fileName, data) {
   return new Promise((resolve, reject) => {
     jsonfile.writeFile(fileName, data, {}, (error) => {
       if (error) {
