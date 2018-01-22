@@ -9,4 +9,4 @@ BizzTreat, s.r.o
 Řehořova 968/42
 Prague
 
-email: jiri.tobolka@bizztreat.com
+email: support@bizztreat.com

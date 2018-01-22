@@ -8,45 +8,61 @@ https://plantystportal.docs.apiary.io/
 
 ### Allowed data objects to extract
 
+- Measurements
 - Measurement Data
 - Metadocuments and Comments
 
 All the objects are mapped to output CSV file. See schema below:
 
+#### Measurements
+
+Represents production machines
+
+["measurementId","title","description","quantityType","archived","rights","first"]
+
+- measurementId: Id of the specific production machine
+- title: The title of the machine
+- description: The description of the machine
+- quantityType: 
+- archived: Flag for archived machine
+- rights: List of assigned permissions
+- first: Timestamp of the first measurement
+
 #### Measurement Data
 
-['From', 'To', 'Value']
+["measurementId","from","to","value"]
 
-- From: Timestamp
-- To: Timestamp
-- Value: Sum of measurements within the from - to range
+- measurementId: Id of the specific production machine
+- from: Timestamp
+- to: Timestamp
+- value: Sum of measurements within the from - to range
 
 #### Metadocuments
 
-['Guid', 'Type', 'Title', 'Description', 'CustomId', 'CreatorId', 'MeasurementId', 'From', 'To', 'Color', 'LastModified', 'Operations', 'DowntimeCode']
+["guid","type","title","description","customId","creatorId","measurementId","from","to","color","setpoint","operations","downtimeCode","lastModified"]
 
-- Guid:
-- Type: 
-- Title:
-- Description:
-- CustomId:
-- CreatorId:
-- MeasurementId:
-- From:
-- To:
-- Color:
-- LastModified:
-- Operations:
-- DowntimeCode:
+- guid:
+- type: 
+- title:
+- description:
+- customId:
+- creatorId:
+- measurementId:
+- from:
+- to:
+- color:
+- lastModified:
+- operations:
+- downtimeCode:
 
 #### Comments
 
-['DocumentGuid', 'Id', 'Text', 'ModificationTime']
+["documentGuid","id","text","modificationTime"]
 
-- DocumentGuid: Parent guid of the metadocument
-- Id: Comment d within the metadocument
-- Text: Content of the message
-- ModificationTime: Timestamp
+- documentGuid: Parent guid of the metadocument
+- id: Comment d within the metadocument
+- text: Content of the message
+- modificationTime: Timestamp
 
 ## Configuration
 
@@ -54,20 +70,19 @@ All the objects are mapped to output CSV file. See schema below:
 
 <pre>
 {
-  "apiURI": <web-service-uri>
+  "endpoint": <web-service-endpoint>
   "#apiToken": <your-secret-tocken>
-  "measurementId": <your-id>
+  "measurementId": <your-id(s)>
   "granularity": One of these ["Base.MinuteSet", "Base.Hour", "Base.Day", "Base.Month"]
   "changedInLast": The time period for which the data will be extracted. (E.g. '30m', '24h', '7d', ...)
   "metadocuments": [true/false] If you want to also extract metadocuments for measured data
-
 }
 </pre>
 
 
-- `apiURI` is url of the service
+- `endpoint` is an endpoint of the service
 - `#apiToken` is your secret token
-- `measurementId` is your unique ID
+- `measurementId` is your unique ID(s)
 - `granularity` is measured time period like minute, hour, day, ...
 - `changedInLast` is time range for data extract
 - `metaducuments` select if you want to read metadocuments
@@ -76,7 +91,7 @@ All the objects are mapped to output CSV file. See schema below:
 ## Contact
 
 BizzTreat, s.r.o
-Bubenská 1477/1
+Řehořova 968/42
 Prague
 
 If you have any question contact support@bizztreat.com
