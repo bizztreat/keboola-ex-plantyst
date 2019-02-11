@@ -23,7 +23,7 @@ Represents production machines
 - measurementId: Id of the specific production machine
 - title: The title of the machine
 - description: The description of the machine
-- quantityType: 
+- quantityType: Quantity type for machine
 - archived: Flag for archived machine
 - rights: List of assigned permissions
 - first: Timestamp of the first measurement
@@ -41,19 +41,20 @@ Represents production machines
 
 ["guid","type","title","description","customId","creatorId","measurementId","from","to","color","setpoint","operations","downtimeCode","lastModified"]
 
-- guid:
-- type: 
-- title:
-- description:
-- customId:
-- creatorId:
-- measurementId:
-- from:
-- to:
-- color:
-- lastModified:
-- operations:
-- downtimeCode:
+- guid: unique identifier of the metadocument
+- type: type of the metadocument (options: 0=undefined, 1=annotation, 2=job, 3=downtime)
+- title: metadocument title
+- description: metadocument description
+- customId: user-defined identifier 
+- creatorId: user identifier of the metadocument creator 
+- measurementId: identifier of the measurement to which the metadocument belongs
+- from: start date time in UTC
+- to: end date time in UTC
+- color: color in hex color code
+- lastModified: date time of the last modification in UTC 
+- setpoint: setpoint for the metadocument; represents the desired value for the measured quantity
+- operations: operations defined as the array of string values
+- downtimeCode: related downtime code identifier
 
 #### Comments
 
